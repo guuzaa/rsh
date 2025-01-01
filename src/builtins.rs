@@ -1,6 +1,8 @@
 use crate::error::Error;
 use std::result;
 
+pub type Builtin = fn(Vec<&str>) -> result::Result<(), Error>;
+
 pub fn lsh_cd(args: Vec<&str>) -> result::Result<(), Error> {
     if args.len() != 2 {
         eprintln!("Usage: cd <directory>");

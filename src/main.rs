@@ -9,11 +9,11 @@ use crate::builtins::*;
 mod error;
 use crate::error::Error;
 
-fn get_builtins() -> HashMap<&'static str, fn(Vec<&str>) -> Result<(), Error>> {
+fn get_builtins() -> HashMap<&'static str, Builtin> {
     HashMap::from([
-        ("cd", lsh_cd as fn(Vec<&str>) -> Result<(), Error>),
-        ("help", lsh_help as fn(Vec<&str>) -> Result<(), Error>),
-        ("exit", lsh_exit as fn(Vec<&str>) -> Result<(), Error>),
+        ("cd", lsh_cd as Builtin),
+        ("help", lsh_help as Builtin),
+        ("exit", lsh_exit as Builtin),
     ])
 }
 
@@ -42,7 +42,6 @@ fn rsh_launch(args: Vec<&str>) {
     match unsafe { libc::fork() } {
         -1 => {
             eprintln!("Fork failed");
-            return;
         }
         0 => {
             // Child process
