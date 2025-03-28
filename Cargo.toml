@@ -5,3 +5,5 @@ edition = "2021"
 
 [dependencies]
 libc = "0.2.169"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }

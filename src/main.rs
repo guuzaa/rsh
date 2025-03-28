@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::io;
 use std::io::Write;
 use std::process;
+use tracing::{debug, error, info, span, Level};
 
 mod builtins;
 use crate::builtins::*;
@@ -24,12 +25,16 @@ fn rsh_loop() {
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
         let args: Vec<&str> = input.split_whitespace().collect();
+        debug!("Received command: {:?}", args);
         match rsh_execute(args) {
             Ok(_) => (),
-            Err(e) => match e {
-                Error::InvalidInput => eprintln!("Invalid input"),
-                Error::ChangeDirectoryError => eprintln!("Failed to change directory"),
-            },
+            Err(e) => {
+                error!("Command execution failed: {:?}", e);
+                match e {
+                    Error::InvalidInput => eprintln!("Invalid input"),
+                    Error::ChangeDirectoryError => eprintln!("Failed to change directory"),
+                }
+            }
         }
     }
 }
@@ -77,17 +82,31 @@ fn rsh_launch(args: Vec<&str>) {
     }
 }
 
+#[tracing::instrument]
 fn rsh_execute(args: Vec<&str>) -> Result<(), Error> {
     let builtins = get_builtins();
+    if args.is_empty() {
+        debug!("Empty command received");
+        return Ok(());
+    }
+
     if builtins.contains_key(args[0]) {
+        debug!(command = %args[0], "Executing builtin command");
+        // debug!("Executing builtin command: {}", args[0]);
         builtins[args[0]](args)
     } else {
+        debug!(command = %args[0], "Launching external command");
+        // debug!("Launching external command: {}", args[0]);
         rsh_launch(args);
         Ok(())
     }
 }
 
 fn main() {
+    // Initialize tracing subscriber
+    tracing_subscriber::fmt::init();
+    info!("Starting rsh shell");
     rsh_loop();
+    info!("Shell terminated");
     process::exit(0);
 }
